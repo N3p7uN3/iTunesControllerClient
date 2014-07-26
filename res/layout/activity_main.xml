@@ -1,0 +1,187 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="left"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:screenOrientation="portrait"
+    tools:context=".MainActivity" >
+
+    <Button
+        android:id="@+id/btnPrev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/tglPlaying"
+        android:layout_alignParentLeft="true"
+        android:layout_alignTop="@+id/tglPlaying"
+        android:layout_toLeftOf="@+id/tglPlaying"
+        android:enabled="false"
+        android:text="&lt;&lt; Previous" />
+
+    <Button
+        android:id="@+id/btnNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/tglPlaying"
+        android:layout_toRightOf="@+id/tglPlaying"
+        android:enabled="false"
+        android:text="Next >>" />
+
+    <ToggleButton
+        android:id="@+id/tglPlaying"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btnPlayByText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="21dp"
+        android:enabled="false"
+        android:onClick="TogglePlayPause"
+        android:text="ToggleButton"
+        android:textOff="Paused"
+        android:textOn="Playing" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/txtServerAddress"
+        android:layout_alignBottom="@+id/txtServerAddress"
+        android:layout_toLeftOf="@+id/txtServerAddress"
+        android:text="Server IP:"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/txtServerPort"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView2"
+        android:layout_alignBottom="@+id/textView2"
+        android:layout_alignLeft="@+id/txtServerAddress"
+        android:ems="10"
+        android:inputType="number"
+        android:text="9876"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txtServerAddress"
+        android:layout_toLeftOf="@+id/txtServerPort"
+        android:text="Server port:"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/btnConnect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/txtServerPort"
+        android:layout_marginTop="18dp"
+        android:text="Connect" />
+
+    <EditText
+        android:id="@+id/txtServerAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/btnConnect"
+        android:ems="10"
+        android:text="192.168.0.2"
+        android:textAppearance="?android:attr/textAppearanceSmall" >
+
+        <requestFocus />
+    </EditText>
+
+    <RatingBar
+        android:id="@+id/ratingBar1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:numStars="5"
+        android:rating="0"
+        android:stepSize="1" />
+
+    <Button
+        android:id="@+id/btnPlayByText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ratingBar1"
+        android:layout_alignParentLeft="true"
+        android:layout_alignRight="@+id/btnPrev"
+        android:enabled="false"
+        android:text="Play by text search"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+
+    <Button
+        android:id="@+id/btnWholePlaylist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btnPlayByText"
+        android:layout_toLeftOf="@+id/txtStatus"
+        android:layout_toRightOf="@+id/btnPlayByText"
+        android:enabled="false"
+        android:text="Get whole playlist"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/btnChangePlaylist"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btnWholePlaylist"
+        android:layout_toRightOf="@+id/btnWholePlaylist"
+        android:enabled="false"
+        android:text="Change playlist" />
+
+    <SeekBar
+        android:id="@+id/sbVolume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/txtStatus"
+        android:layout_below="@+id/txtStatus"
+        android:max="100"
+        android:progress="25" />
+
+    <TextView
+        android:id="@+id/tvCurPlaying"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sbVolume"
+        android:layout_centerHorizontal="true"
+        android:text="N/A"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btnConnect"
+        android:layout_alignBottom="@+id/btnConnect"
+        android:layout_alignRight="@+id/sbProgress"
+        android:text="Disconnected"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/tvProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvCurPlaying"
+        android:layout_centerHorizontal="true"
+        android:text="00:00:00 / 00:00:00"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <SeekBar
+        android:id="@+id/sbProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/btnPrev"
+        android:layout_below="@+id/tvProgress" />
+
+</RelativeLayout>
