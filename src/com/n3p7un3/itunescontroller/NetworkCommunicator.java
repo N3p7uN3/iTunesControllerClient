@@ -31,9 +31,14 @@ public class NetworkCommunicator {
 
 	private NetworkComListener _lstMaster;
 	private List<NetworkComListener> _listeners;
-	private Thread _thePacketSender;
-	private Thread _thePacketReceiver;
-	private volatile Queue<String> _packetSendQueue;
+	
+	private ClientPacketSender _packetSender;
+	private Thread _packetSenderThread;
+	
+	private ClientPacketReader _packetReader;
+	private Thread _packetReceiverThread;
+	
+	//private volatile Queue<String> _packetSendQueue;
 	Thread _clientConnectThread;
 	private volatile boolean _disconnected;
 	private Timer _watchdog;
@@ -42,7 +47,7 @@ public class NetworkCommunicator {
 	public NetworkCommunicator()
 	{
 		_theClient = new Socket();
-		_packetSendQueue = new LinkedList<String>();
+		//_packetSendQueue = new ;
 		_listeners = new ArrayList<NetworkComListener>();
 		_disconnected = true;
 		
@@ -142,11 +147,11 @@ public class NetworkCommunicator {
 			_watchdog.purge();
 		}
 		
-		if (_thePacketSender != null)
-			_thePacketSender.interrupt();
+		if (_packetSenderThread != null)
+			_packetSenderThread.interrupt();
 		
-		if (_thePacketReceiver != null)
-			_thePacketReceiver.interrupt();
+		if (_packetReceiverThread != null)
+			_packetReceiverThread.interrupt();
 		
 		if (_clientConnectThread !=null)
 			_clientConnectThread.interrupt();
@@ -242,11 +247,13 @@ public class NetworkCommunicator {
 			//We are connected, do the necessary stuff
 			_disconnected = false;
 			
-			_thePacketSender = new Thread(new ClientPacketSender(_theClient, _packetSendQueue));
-			_thePacketSender.start();
+			_packetSender = new ClientPacketSender(_theClient/*, _packetSendQueue*/);
+			_packetSenderThread = new Thread(_packetSender);
+			_packetSenderThread.start();
 			
-			_thePacketReceiver = new Thread(new ClientPacketReader(_theClient));
-			_thePacketReceiver.start();
+			_packetReader = new ClientPacketReader(_theClient);
+			_packetReceiverThread = new Thread(_packetReader);
+			_packetReceiverThread.start();
 			
 			//start a timer
 			_watchdog = new Timer();
@@ -294,7 +301,7 @@ public class NetworkCommunicator {
 	
 	public void SendPacket(String packet)
 	{
-		_packetSendQueue.add(packet);
+		_packetSender.SendPacket(packet);
 	}
 	
 	private class ClientPacketSender implements Runnable
@@ -304,13 +311,16 @@ public class NetworkCommunicator {
 		private PrintWriter _out;
 		private char _endOfPacketChar;
 		
-		public ClientPacketSender(Socket theClient, Queue<String> theQueue)
+		private final Object _packetReadyWait = new Object();
+		
+		public ClientPacketSender(Socket theClient/*, Queue<String> theQueue*/)
 		{
 			_theClient = theClient;
-			_packetQueue = theQueue;
+			_packetQueue = new LinkedList<String>();
 			_endOfPacketChar = '\n';
 			try {
 				_out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(_theClient.getOutputStream())), true);
+				//_packetReadyWait = new Object();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -320,6 +330,12 @@ public class NetworkCommunicator {
 			
 			
 			
+		}
+		
+		public void SendPacket(String packet)
+		{
+			_packetQueue.add(packet);
+			_packetReadyWait.notifyAll();
 		}
 		
 		public void run()
@@ -352,12 +368,22 @@ public class NetworkCommunicator {
 						}
 					}
 				}
-				
+				/*
 				try {
 					Thread.currentThread().sleep(50);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					break;
+				}
+				*/
+				
+				synchronized(_packetReadyWait) {
+					try {
+						_packetReadyWait.wait(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						//e.printStackTrace();
+					}
 				}
 			}
 			

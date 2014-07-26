@@ -452,7 +452,7 @@ public class iTunesCommunicator {
 	
 	private void ParseSearchResult(String packet)
 	{
-		/*
+		
 		String[] splitBySpace = packet.split(" ");
 		
 		int position = Integer.parseInt(splitBySpace[2]);
@@ -472,10 +472,16 @@ public class iTunesCommunicator {
 		{
 			_searchResults.add(searchresult);
 		}
-		*/
 		
+		
+		/*
 		String[] splitByTab = packet.split("\t");
 		
+		for (int i = 2; i < splitByTab.length; ++i)
+		{
+			
+		}
+		*/
 		
 		
 	}
