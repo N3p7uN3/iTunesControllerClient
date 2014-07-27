@@ -311,7 +311,7 @@ public class NetworkCommunicator {
 		private PrintWriter _out;
 		private char _endOfPacketChar;
 		
-		private final Object _packetReadyWait = new Object();
+		private volatile Object _packetReadyWait;
 		
 		public ClientPacketSender(Socket theClient/*, Queue<String> theQueue*/)
 		{
@@ -320,11 +320,11 @@ public class NetworkCommunicator {
 			_endOfPacketChar = '\n';
 			try {
 				_out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(_theClient.getOutputStream())), true);
-				//_packetReadyWait = new Object();
+				_packetReadyWait = new Object();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				Log.w("debugging", "could not write");
+				Log.w("debugging", "Could not start output stream");
 				Thread.currentThread().interrupt();
 			}
 			
@@ -335,7 +335,12 @@ public class NetworkCommunicator {
 		public void SendPacket(String packet)
 		{
 			_packetQueue.add(packet);
-			_packetReadyWait.notifyAll();
+			try {
+				_packetReadyWait.notifyAll();
+			} catch (java.lang.IllegalMonitorStateException e) {
+				// TODO Auto-generated catch block
+				//nothing
+			}
 		}
 		
 		public void run()
