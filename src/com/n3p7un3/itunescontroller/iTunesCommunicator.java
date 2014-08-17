@@ -3,12 +3,14 @@ package com.n3p7un3.itunescontroller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.n3p7un3.networkcommunicatorclient.NetworkCommunicator;
+import com.n3p7un3.networkcommunicatorclient.NetworkCommunicator.NetworkComListener;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.n3p7un3.itunescontroller.NetworkCommunicator.NetworkComListener;
 
 public class iTunesCommunicator {
 	
@@ -105,10 +107,10 @@ public class iTunesCommunicator {
 		NetworkComListener _localListener = new NetworkComListener() {
 
 			@Override
-			public void fireEvent(com.n3p7un3.itunescontroller.NetworkEvent ne) {
+			public void fireEvent(
+					com.n3p7un3.networkcommunicatorclient.NetworkEvent arg0) {
 				// TODO Auto-generated method stub
-				NetworkEvent(ne);
-				
+				NetworkEvent(arg0);
 			}
 			
 		};
@@ -124,7 +126,7 @@ public class iTunesCommunicator {
 	}
 	
 	
-	protected void NetworkEvent(NetworkEvent ne) {
+	protected void NetworkEvent(com.n3p7un3.networkcommunicatorclient.NetworkEvent ne) {
 		// TODO Auto-generated method stub
 		switch (ne.EventType)
 		{
