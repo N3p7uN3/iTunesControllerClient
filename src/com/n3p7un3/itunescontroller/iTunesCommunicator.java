@@ -245,7 +245,7 @@ public class iTunesCommunicator {
 				_listiTunesEventMaster.fireEvent(new iTunesEvent<IntValue>(iTunesEventType.VolumeStateMsg, volumeVal));
 				
 				
-			} else if (splitBySpace[1].equals("searchresults"))
+			} else if (splitBySpace[1].equals("searchresults") || (splitBySpace[1].equals("playlistsearchresults")))
 			{
 				if (_doneReceivingSearchResults)
 				{
@@ -255,52 +255,13 @@ public class iTunesCommunicator {
 				}
 				
 				ParseSearchResult(packet);
+				
 			} else if (splitBySpace[1].equals("searchresultsend"))
 			{
-				_doneReceivingSearchResults = true;
-				
-				/*
-				 * 
-				final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle("Select a search result");
-				//build the CharSequence[]
-				final int listSize = _searchResults.size();
-				CharSequence[] theList = new CharSequence[listSize];
-				for (int i = 0; i < listSize; ++i)
-				{
-					theList[i] = _searchResults.get(listSize - i - 1);
-				}
-				builder.setItems(theList, new DialogInterface.OnClickListener() {
-
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						_com.SendPacket("itunescommand play " + Integer.toString(listSize - which));
-						
-					}
-					
-				});
-				
-				runOnUiThread(new Runnable () {
-
-					@Override
-					public void run() {
-						builder.show();
-					}
-					
-				});
-				
-				*/
-				int listSize = _searchResults.size();
-				CharSequence[] theList = new CharSequence[listSize];
-				for (int i = 0; i < listSize; ++i)
-				{
-					theList[i] = _searchResults.get(listSize - i - 1);
-				}
-				SearchResults results = new SearchResults(theList);
-				//results.Results =  theList;
-				_listiTunesEventMaster.fireEvent(new iTunesEvent<SearchResults>(iTunesEventType.SearchResultsReadyMsg, results));
-				
-				
+				SearchResultsEnded(SearchResults.SearchResultsType.Songs);
+			} else if (splitBySpace[1].equals("playlistsearchresultsend"))
+			{
+				SearchResultsEnded(SearchResults.SearchResultsType.Playlists);
 			} else if (splitBySpace[1].equals("searchresult"))
 			{
 				if (splitBySpace[2].equals("none"))
@@ -399,6 +360,11 @@ public class iTunesCommunicator {
 		_nc.SendPacket("itunescommand playpause play");
 	}
 	
+	public void SetPlaylist(int num)
+	{
+		_nc.SendPacket("itunescommand setplaylist " + Integer.toString(num));
+	}
+	
 	public void Play(int num)
 	{
 		_nc.SendPacket("itunescommand play " + Integer.toString(num));
@@ -422,6 +388,11 @@ public class iTunesCommunicator {
 	public void GetWholePlaylist()
 	{
 		_nc.SendPacket("itunescommand play playbysearch ");
+	}
+	
+	public void GetPlaylists()
+	{
+		_nc.SendPacket("request playlists");
 	}
 	
 	public void SetRatingCurrentTrack(int rating)
@@ -466,14 +437,8 @@ public class iTunesCommunicator {
 			
 					
 		}
-		if (_searchResults.size() >= position)
-		{
-			_searchResults.add(position, searchresult);
-		}
-		else
-		{
-			_searchResults.add(searchresult);
-		}
+		
+		AddSearchResult(searchresult, position);
 		
 		
 		/*
@@ -487,6 +452,34 @@ public class iTunesCommunicator {
 		
 		
 	}
+	
+	private void AddSearchResult(String searchresult, int zeroBasedPosition)
+	{
+		if (_searchResults.size() >= zeroBasedPosition)
+		{
+			_searchResults.add(zeroBasedPosition, searchresult);
+		}
+		else
+		{
+			_searchResults.add(searchresult);
+		}
+	}
+	
+	private void SearchResultsEnded(SearchResults.SearchResultsType type)
+	{
+		_doneReceivingSearchResults = true;
+
+		int listSize = _searchResults.size();
+		CharSequence[] theList = new CharSequence[listSize];
+		for (int i = 0; i < listSize; ++i)
+		{
+			theList[i] = _searchResults.get(listSize - i - 1);
+		}
+		SearchResults results = new SearchResults(theList, type);
+		//results.Results =  theList;
+		_listiTunesEventMaster.fireEvent(new iTunesEvent<SearchResults>(iTunesEventType.SearchResultsReadyMsg, results));
+	}
+	
 
 	//public void AddNetworkEventListener(NetworkComListener listener) { _networkEventListeners.add(listener); }
 	

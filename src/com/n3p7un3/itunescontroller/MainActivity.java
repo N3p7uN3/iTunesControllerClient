@@ -189,7 +189,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 			
 		case SearchResultsReadyMsg:
 			SearchResults results = (SearchResults) event.Data;
-			PromptForSearchResultsSelection(results.Results);
+			PromptForSearchResultsSelection(results);
 			
 			
 			break;
@@ -428,6 +428,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 				_rtb.setEnabled(false);
 				_btnWholePlaylist.setEnabled(false);
 				_sbProgress.setEnabled(false);
+				_btnChangePlaylist.setEnabled(false);
 			}
 		});
 	}
@@ -450,6 +451,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 				_rtb.setEnabled(true);
 				_btnWholePlaylist.setEnabled(true);
 				_sbProgress.setEnabled(true);
+				_btnChangePlaylist.setEnabled(true);
 			}
 		});
 	}
@@ -587,15 +589,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 			ConButtonClicked();
 			break;
 		case R.id.btnChangePlaylist:
-			//_com.SendPacket("request playlists");
+			_iTunesRemote.GetPlaylists();
 			break;
 			
 		}
 		
 	}
 	
-	private void PromptForSearchResultsSelection(final CharSequence[] theList)
+	private void PromptForSearchResultsSelection(SearchResults results)
 	{
+		
+		final CharSequence[] theList = results.GetSearchResults();
+		final SearchResults.SearchResultsType type = results.GetSearchResultsType();
+		
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Select a search result");
 		//build the CharSequence[]
@@ -609,7 +615,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				_iTunesRemote.Play(listSize - which);
+				if (type == SearchResults.SearchResultsType.Songs)
+					_iTunesRemote.Play(listSize - which);
+				else
+					_iTunesRemote.SetPlaylist(listSize - which);
 				
 			}
 			

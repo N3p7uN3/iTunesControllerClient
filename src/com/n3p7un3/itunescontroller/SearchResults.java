@@ -1,11 +1,23 @@
 package com.n3p7un3.itunescontroller;
 
-public class SearchResults<DataType>
+public class SearchResults
 {
-	CharSequence[] Results;
+	public enum SearchResultsType {
+		Songs,
+		Playlists
+	};
 	
-	public SearchResults(CharSequence[] results)
+	CharSequence[] mResults;
+	SearchResultsType mType;
+	
+	
+	public SearchResults(CharSequence[] results, SearchResultsType type)
 	{
-		Results = results;
+		mResults = results;
+		mType = type;
 	}
+	
+	public SearchResultsType GetSearchResultsType() { return mType; }
+	public CharSequence[] GetSearchResults() { return mResults; }
 }
+
