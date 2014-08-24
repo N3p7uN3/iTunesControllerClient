@@ -208,18 +208,26 @@ public class iTunesCommunicator {
 					*/
 				
 				//iTunesEvent.PlayPauseState stateObj;
-				PlayPauseState stateObj = new PlayPauseState(false);
+				BooleanState stateObj = new BooleanState(false);
 				
 				if (state.equals("playing"))
-					stateObj.IsPlaying = true;
+					stateObj.Val = true;
 				//else
 					//iTunesEvent.PlayPauseState stateObj = new iTunesEvent.PlayPauseState(false);
 				
-				_listiTunesEventMaster.fireEvent(new iTunesEvent<PlayPauseState>(iTunesEventType.PlayPauseStateMsg, stateObj));
+				_listiTunesEventMaster.fireEvent(new iTunesEvent<BooleanState>(iTunesEventType.PlayPauseStateMsg, stateObj));
 				
 				
 				
 				
+			} else if (splitBySpace[1].equals("shufflestate"))
+			{
+				BooleanState stateObj = new BooleanState(false);
+				
+				if (splitBySpace[2].equals("on"))
+					stateObj.Val = true;
+				
+				_listiTunesEventMaster.fireEvent(new iTunesEvent<BooleanState>(iTunesEventType.ShuffleStateMsg, stateObj));
 				
 			} else if (splitBySpace[1].equals("volumestate"))
 			{
@@ -353,6 +361,14 @@ public class iTunesCommunicator {
 	public void Disconnect(String reason)
 	{
 		_nc.Disconnect(reason);
+	}
+	
+	public void SetShuffle(boolean shuffling)
+	{
+		if (shuffling)
+			_nc.SendPacket("itunescommand setshuffle on");
+		else
+			_nc.SendPacket("itunescommand setshuffle off");
 	}
 	
 	public void Play()

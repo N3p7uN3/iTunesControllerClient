@@ -14,4 +14,5 @@ public enum iTunesEventType {
 	NewRatingAvailableMsg,
 	CurrentTrackTimeMsg,
 	CurrentTrackNameMsg,
+	ShuffleStateMsg
 }

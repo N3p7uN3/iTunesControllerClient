@@ -3,6 +3,8 @@ package com.n3p7un3.itunescontroller;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.n3p7un3.itunescontroller.Settings;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -10,10 +12,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -35,6 +39,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 	TextView _txtServerPort;
 	TextView _txtStatus;
 	volatile ToggleButton _tglPlaying;
+	volatile ToggleButton _tglShuffle;
 	Button _btnCon;
 	Button _btnNext;
 	Button _btnPrev;
@@ -52,6 +57,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 	//List<String> _searchResults;
 	
 	volatile boolean _receivingPlaypauseStatus;
+	volatile boolean _receivingShuffleStatus;
 	
 	BroadcastReceiver _screenReceiver;
 	boolean _currentlyForescreen;
@@ -80,14 +86,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 		};
 		_com.AddNetworkEventListener(_localListener);
 		*/
-		
-		_txtServerAddr = (TextView) findViewById(R.id.txtServerAddress);
-		_txtServerPort = (TextView) findViewById(R.id.txtServerPort);
 		_txtStatus = (TextView) findViewById(R.id.txtStatus);
 		_btnCon = (Button) findViewById(R.id.btnConnect);
 		_btnCon.setOnClickListener(this);
 		_tglPlaying = (ToggleButton) findViewById(R.id.tglPlaying);
+		_tglShuffle = (ToggleButton) findViewById(R.id.tglShuffle);
 		_receivingPlaypauseStatus = true;
+		_receivingShuffleStatus = true;
 		_sbVolume = (SeekBar) findViewById(R.id.sbVolume);
 		_sbVolume.setOnSeekBarChangeListener(this);
 		_btnNext = (Button) findViewById(R.id.btnNext);
@@ -178,8 +183,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 			break;
 			
 		case PlayPauseStateMsg:
-			PlayPauseState theState = (PlayPauseState) event.Data;
-			SetPlayPauseButtonState(theState.IsPlaying);
+			BooleanState theState = (BooleanState) event.Data;
+			SetPlayPauseButtonState(theState.Val);
+			break;
+			
+		case ShuffleStateMsg:
+			theState = (BooleanState) event.Data;
+			SetShuffleButtonState(theState.Val);
+			
 			break;
 			
 		case VolumeStateMsg:
@@ -291,16 +302,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 				
 				_receivingPlaypauseStatus = true;
 
-				if (playing)
-				{
-					//playing
-					_tglPlaying.setChecked(true);
-				}
-				else
-				{
-					//paused
-					_tglPlaying.setChecked(false);
-				}
+				_tglPlaying.setChecked(playing);
 				
 				_receivingPlaypauseStatus = false;
 			}
@@ -308,6 +310,23 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 		});
 		
 		
+	}
+	
+	private void SetShuffleButtonState(final boolean shuffling)
+	{
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				_receivingShuffleStatus = true;
+				
+				_tglShuffle.setChecked(shuffling);
+				
+				_receivingShuffleStatus = false;
+			}
+			
+		});
 	}
 	
 	protected void onPause()
@@ -369,18 +388,27 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 		//Attempt to connect
 		if (!_iTunesRemote.IsAlreadyConnected())
 		{
-			_iTunesRemote.AttemptConnect(_txtServerAddr.getText().toString(), Integer.parseInt(_txtServerPort.getText().toString()));
-		
-			runOnUiThread(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					_txtStatus.setText("Attempting to connect...");
-					_btnCon.setText("Disconnect");
-				}
+			SharedPreferences prefs = getApplicationContext().getSharedPreferences("com.n3p7un3.itunescontroller.prefs", Context.MODE_MULTI_PROCESS);
+			String serverAddr = prefs.getString("serverAddress", "");
+			int serverPort = Integer.parseInt(prefs.getString("serverPort", "-1"));
+			
+			if ((serverAddr != "") && (serverPort != -1))
+			{
+				_iTunesRemote.AttemptConnect(serverAddr, serverPort);
 				
-			});
+				runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						_txtStatus.setText("Attempting to connect...");
+						_btnCon.setText("Disconnect");
+					}
+					
+				});
+			}
+		
+			
 		}
 	}
 
@@ -389,6 +417,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		
+		
+		
+		return true;
+	}
+	
+	public boolean onOptionsItemSelected (MenuItem item)
+	{
+		AttemptToDisconnect("Launching settings.");
+		//getFragmentManager().beginTransaction().replace(android.R.id.content, new Settings()).commit();
+		Intent intent = new Intent(this, SettingsActivity.class);
+		
+		startActivity(intent);
 		
 		return true;
 	}
@@ -421,6 +461,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 				_btnCon.setText("Connect");
 				_txtStatus.setText(reason);
 				_tglPlaying.setEnabled(false);
+				_tglShuffle.setEnabled(false);
 				_sbVolume.setEnabled(false);
 				_btnNext.setEnabled(false);
 				_btnPrev.setEnabled(false);
@@ -444,6 +485,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 				_txtStatus.setText("Connected");
 				
 				_tglPlaying.setEnabled(true);
+				_tglShuffle.setEnabled(true);
 				_sbVolume.setEnabled(true);
 				_btnNext.setEnabled(true);
 				_btnPrev.setEnabled(true);
@@ -507,25 +549,49 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, O
 		return val;
 	}
 	
-	public void TogglePlayPause(View v)
+	public void Toggle(View v)
 	{
-		
-		if (!_receivingPlaypauseStatus)
+		switch (v.getId())
 		{
-			//get checked state
-			runOnUiThread(new Runnable() {
-	
-				@Override
-				public void run() {
+		case R.id.tglPlaying:
+			if (!_receivingPlaypauseStatus)
+			{
+				//get checked state
+				runOnUiThread(new Runnable() {
+		
+					@Override
+					public void run() {
+						
+							if (_tglPlaying.isChecked())
+								_iTunesRemote.Play();
+							else
+								_iTunesRemote.Pause();
+					}
 					
-						if (_tglPlaying.isChecked())
-							_iTunesRemote.Play();
+				});
+			}
+			break;
+			
+		case R.id.tglShuffle:
+			if (!_receivingShuffleStatus)
+			{
+				runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						if (_tglShuffle.isChecked())
+							_iTunesRemote.SetShuffle(true);
 						else
-							_iTunesRemote.Pause();
-				}
-				
-			});
+							_iTunesRemote.SetShuffle(false);
+					}
+					
+				});
+			}
+			break;
+		
 		}
+		
 		
 		//_tglPlaying.setChecked(_tglPlaying.isChecked());
 	}
